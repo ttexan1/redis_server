@@ -7,23 +7,18 @@ import (
 
 	"redis_app/command"
 	"redis_app/domain"
-	"redis_app/store"
 	"redis_app/usecase"
 )
-
-// Store is the interface
-type Store interface {
-	Get(string) (*domain.Single, error)
-	Set([]string) error
-}
 
 type parser struct {
 	Directive string
 	Arguments []string
 	// Len is a length for the top command
 	Len int
+}
 
-	Store Store
+type staticCommandHandler struct {
+	usecase.Static
 }
 type singleCommandHandler struct {
 	pr *parser
@@ -35,8 +30,9 @@ type listCommandHandler struct {
 	usecase.List
 }
 
+// ParseHandler is the interface for parser
 type ParseHandler interface {
-	Handle() string
+	Handle(*parser) string
 }
 
 // InitParser registers the parser
@@ -45,31 +41,23 @@ func InitParser(uc *usecase.UseCase) map[string]ParseHandler {
 		"single": &singleCommandHandler{
 			Single: uc.NewSingle(),
 		},
+		"static": &staticCommandHandler{
+			Static: uc.NewStatic(),
+		},
 	}
 	return handlers
-	// handler := listCommandHandler{
-	// 	List: uc.NewList(),
-	// }
 }
 
 // ParseCommand parse the given text to response string
-func ParseCommand(text string, db *store.DB, uc *usecase.UseCase) string {
-	parsers := map[string]ParseHandler{}
+func ParseCommand(text string, parsers map[string]ParseHandler) string {
 	pr := rawStringToArguments(text)
-	pr.Store = db
-
-	fmt.Println(pr)
+	fmt.Println("AAAAAAAAAAAAAA")
 	if _, ok := command.StaticCommandList[pr.Directive]; ok {
+		// todo 定数
+		return parsers["static"].Handle(pr)
 	}
 	if _, ok := command.SingleCommandWhiteList[pr.Directive]; ok {
-		parsers["single"].Handle()
-		handler := singleCommandHandler{
-			pr:     pr,
-			Single: uc.NewSingle(),
-		}
-		result := handler.Handle()
-		fmt.Println(result)
-		return result
+		return parsers["single"].Handle(pr)
 	}
 	if _, ok := command.ListCommandWhiteList[pr.Directive]; ok {
 
@@ -111,4 +99,8 @@ func rawStringToArguments(text string) *parser {
 		}
 	}
 	return pr
+}
+
+func low(text string) string {
+	return strings.ToLower(text)
 }

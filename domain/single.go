@@ -2,17 +2,18 @@ package domain
 
 import (
 	"strconv"
-	"time"
 )
 
 // Single is the sturct for the simple key value commands
 type Single struct {
 	// Key       string
-	Value     string
-	Length    int
-	CreatedAt time.Time
-	UpdatedAt time.Time
-	ExpiredMs int64
+	Value  string
+	Length int
+
+	// when you implement ex, px options, these column will be needed
+	// CreatedAt time.Time
+	// UpdatedAt time.Time
+	// ExpiredMs int64
 }
 
 // IntValue converts the value into int type

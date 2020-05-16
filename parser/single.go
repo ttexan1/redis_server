@@ -1,38 +1,25 @@
 package parser
 
 import (
+	"fmt"
 	"redis_app/command"
 	"redis_app/domain"
 )
 
-// type singleCommandHandler struct {
-// 	pr parser
-// 	usecase.SingleStore
-// }
-
-func (h *singleCommandHandler) Handle() string {
-	// h.Set()
-
-	switch h.pr.Directive {
-	case command.Ping:
-		return h.pr.Ping()
+func (h *singleCommandHandler) Handle(pr *parser) string {
+	key := pr.Arguments[0]
+	fmt.Println(pr.Arguments)
+	switch pr.Directive {
 	case command.Get:
-		return h.Get(h.pr.Arguments[0])
-	// case command.Set:
-	// 	return h.pr.Set()
+		return h.Get(key)
+	case command.Set:
+		value := pr.Arguments[1]
+		options := pr.Arguments[2:]
+		return h.Set(key, value, options)
+	case command.IncrBy:
+		value := pr.Arguments[1]
+		return h.IncrBy(key, value)
 	default:
 		return domain.ErrorTypeWrongSyntax
 	}
 }
-
-// Get fetch the value of given key
-// func (h *singleCommandHandler) Get() string {
-// 	if h.pr.Len != 2 {
-// 		return "INVALID REQUEST"
-// 	}
-// 	info, err := h.Get(h.pr.Arguments[0])
-// 	if err != nil {
-// 		return domain.ErrorTypeNilValue
-// 	}
-// 	return fmt.Sprintf("$%d\n%s\r\n", info.Length, info.Value)
-// }

@@ -8,6 +8,7 @@ type Error struct {
 
 // ErrorTypes
 const (
+	ErrorTypeBasic               = "-ERR:"
 	ErrorTypeNilValue            = "$-1"
 	ErrorTypeWrongArgumentNumber = "-ERR wrong number of arguments"
 	ErrorTypeWrongArgumentType   = "-ERR wrong argument type"

@@ -42,7 +42,7 @@ func goEcho(connection net.Conn, db map[string]*store.DB, sID string) {
 		connection.Close()
 	}()
 	uc := usecase.NewUseCase(db[sID].Single, db[sID].List)
-	// parser :=InitParser
+	parsers := parser.InitParser(uc)
 
 	var echo func(net.Conn, *store.DB, *usecase.UseCase)
 	echo = func(connection net.Conn, d *store.DB, uc *usecase.UseCase) {
@@ -56,7 +56,7 @@ func goEcho(connection net.Conn, db map[string]*store.DB, sID string) {
 		}
 		fmt.Println(">", string(buf))
 
-		resFormatted := parser.ParseCommand(string(buf), d, uc)
+		resFormatted := parser.ParseCommand(string(buf), parsers)
 		fmt.Println(resFormatted)
 		// resFormatted := "+OK"
 		_, err = connection.Write([]byte(resFormatted))

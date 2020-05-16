@@ -25,7 +25,7 @@ func sendMessage(connection net.Conn, text string) {
 
 	stdin := bufio.NewScanner(os.Stdin)
 	if stdin.Scan() == false {
-		fmt.Println("Ciao ciao!")
+		fmt.Println("-Error")
 		return
 	}
 	newText := stdin.Text()
@@ -61,7 +61,6 @@ func convertRedisProtocol(text string) string {
 	args := strings.Split(text, " ")
 	switch strings.ToLower(args[0]) {
 	case command.Ping:
-		// fmt.Println(args)
 		return dealPing(args)
 	default:
 		return "BBB"
