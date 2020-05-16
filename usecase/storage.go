@@ -20,16 +20,60 @@ type ListStore interface {
 	SetList([]string) error
 }
 
-type Single struct {
+//
+
+//
+//
+//
+//
+//
+//
+
+type Single interface {
+	Get(string) string
+	Set(string, []string) string
+	Del(string) string
 }
+type single struct {
+	SingleStore
+}
+
+func (uc *UseCase) NewSingle() Single {
+	return &single{
+		SingleStore: uc.SingleStore,
+	}
+}
+
+func (sg *single) Get(key string) string {
+	if _, err := sg.GetValue(key); err != nil {
+
+	}
+	return "+PONG"
+}
+func (sg *single) Set(key string, options []string) string { return "" }
+func (sg *single) Del(key string) string                   { return "" }
+
+//
+//
+//
+//
 
 type List struct {
 }
 
-type UserCase struct {
-	Storage
+type useCase struct {
 }
 
-func NewUseCase(s Storage) *UserCase {
-	return &UserCase{s}
+type UseCase struct {
+	SingleStore SingleStore
+	ListStore   ListStore
+}
+
+// NewUseCase returns initialized struct
+// store.DB is given on Storage
+func NewUseCase(s SingleStore, l ListStore) *UseCase {
+	return &UseCase{
+		SingleStore: s,
+		ListStore:   l,
+	}
 }

@@ -7,26 +7,32 @@ const (
 	// and so on
 )
 
+// StaticCommandList is the white list for simple key value data
+var StaticCommandList = map[string]struct{}{
+	Ping: {},
+	Echo: {},
+}
+
 // Simple Structure Command List
 const (
-	Get    = "get"
-	Set    = "set"
-	Del    = "del"
-	IncrBy = "incrby"
-	Append = "append" // not implemented but can be by this application structure
+	Get         = "get"
+	Set         = "set"
+	Del         = "del"
+	IncrBy      = "incrby"
+	IncrByFloat = "incrbyfloat"
+	Append      = "append" // not implemented but can be by this application structure
 	// and so on
 )
 
-// List Structure Command List
-const (
-	Lpush  = "lpush"
-	Lrange = "lrange"
-	// and so on
-)
-
-// System Command List
-// Memory Command List
-// and so on
+// SingleCommandWhiteList is the white list for simple key value data
+var SingleCommandWhiteList = map[string]struct{}{
+	Get:         {},
+	Set:         {},
+	Del:         {},
+	IncrBy:      {},
+	IncrByFloat: {},
+	Append:      {},
+}
 
 // Options
 const (
@@ -34,9 +40,4 @@ const (
 	SetOptionXX = "xx"
 	SetOptionEX = "ex"
 	SetOptionPX = "px"
-)
-
-// Typical error responses
-const (
-	InvalidFormat = "invalid_format"
 )

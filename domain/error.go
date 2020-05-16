@@ -8,7 +8,7 @@ type Error struct {
 
 // ErrorTypes
 const (
-	ErrorTypeNilValue            = "$-1\r\n"
+	ErrorTypeNilValue            = "$-1"
 	ErrorTypeWrongArgumentNumber = "-ERR wrong number of arguments"
 	ErrorTypeWrongArgumentType   = "-ERR wrong argument type"
 	ErrorTypeWrongSyntax         = "-ERR wrong syntax"
@@ -18,5 +18,5 @@ const (
 )
 
 func (e *Error) Error() string {
-	return e.Type + ":" + e.FullMessage
+	return e.Type + ":" + e.FullMessage + "\r\n"
 }

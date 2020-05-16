@@ -8,6 +8,7 @@ import (
 	"redis_app/command"
 	"redis_app/domain"
 	"redis_app/store"
+	"redis_app/usecase"
 )
 
 // Store is the interface
@@ -24,23 +25,56 @@ type parser struct {
 
 	Store Store
 }
+type singleCommandHandler struct {
+	pr *parser
+	usecase.Single
+}
+
+type listCommandHandler struct {
+	pr *parser
+	usecase.List
+}
+
+type ParseHandler interface {
+	Handle() string
+}
+
+// InitParser registers the parser
+func InitParser(uc *usecase.UseCase) map[string]ParseHandler {
+	handlers := map[string]ParseHandler{
+		"single": &singleCommandHandler{
+			Single: uc.NewSingle(),
+		},
+	}
+	return handlers
+	// handler := listCommandHandler{
+	// 	List: uc.NewList(),
+	// }
+}
 
 // ParseCommand parse the given text to response string
-func ParseCommand(text string, db *store.DB) string {
+func ParseCommand(text string, db *store.DB, uc *usecase.UseCase) string {
+	parsers := map[string]ParseHandler{}
 	pr := rawStringToArguments(text)
-	fmt.Println(pr)
 	pr.Store = db
 
-	switch pr.Directive {
-	case command.Ping:
-		return pr.Ping()
-	case command.Get:
-		return pr.Get()
-	case command.Set:
-		return pr.Set()
-	default:
-		return "Invalid Command"
+	fmt.Println(pr)
+	if _, ok := command.StaticCommandList[pr.Directive]; ok {
 	}
+	if _, ok := command.SingleCommandWhiteList[pr.Directive]; ok {
+		parsers["single"].Handle()
+		handler := singleCommandHandler{
+			pr:     pr,
+			Single: uc.NewSingle(),
+		}
+		result := handler.Handle()
+		fmt.Println(result)
+		return result
+	}
+	if _, ok := command.ListCommandWhiteList[pr.Directive]; ok {
+
+	}
+	return domain.ErrorTypeUnknownCommand
 }
 
 // example
@@ -56,13 +90,13 @@ func rawStringToArguments(text string) *parser {
 	fmt.Println(args)
 	if len(args) < 3 {
 		return &parser{
-			Directive: command.InvalidFormat,
+			Directive: "Invalid",
 		}
 	}
 	l, err := strconv.Atoi(strings.Split(args[0], "*")[1])
 	if err != nil {
 		return &parser{
-			Directive: command.InvalidFormat,
+			Directive: "Invalid",
 		}
 	}
 	pr.Len = l

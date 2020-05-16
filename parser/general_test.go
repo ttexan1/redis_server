@@ -6,6 +6,7 @@ import (
 	"redis_app/command"
 	"redis_app/domain"
 	"redis_app/store"
+	"redis_app/usecase"
 )
 
 const pingSimple = `*1
@@ -34,7 +35,8 @@ func TestRawParser(t *testing.T) {
 }
 
 func TestPingCommand(t *testing.T) {
-	res := ParseCommand(pingSimple, &store.DB{})
+	uc := &usecase.UseCase{}
+	res := ParseCommand(pingSimple, &store.DB{}, uc)
 	if res != domain.ResponsePong {
 		t.Fatal(res, "Wrong Result")
 	}
@@ -61,9 +63,10 @@ xx
 
 func TestSetGeneral(t *testing.T) {
 	db := &store.DB{St: make(map[string]*domain.Single)}
-	res := ParseCommand(setArgument1, db)
+	uc := &usecase.UseCase{}
+	res := ParseCommand(setArgument1, db, uc)
 	if res != domain.ResponseOK {
 		t.Fatal(res, "Wrong Result")
 	}
-	res = ParseCommand(setArgument2, db)
+	res = ParseCommand(setArgument2, db, uc)
 }

@@ -9,7 +9,20 @@ import (
 
 // DB is the struct for data store
 type DB struct {
-	St map[string]*domain.Single
+	St     map[string]*domain.Single
+	Single *single
+	List   *list
+}
+
+type DBFactory struct {
+	Single single
+}
+
+type single struct {
+	singleDB map[string]*domain.Single
+}
+type list struct {
+	listDB map[string]*domain.ListValue
 }
 
 // // DB is the key-value store for the current session
@@ -18,13 +31,15 @@ type DB struct {
 // 	List   map[string]*domain.ListValue
 // }
 
-// // NewDB returns the new data base for the session
-// func NewDB() *DB {
-// 	return &DB{
-// 		Single: make(map[string]*domain.Single),
-// 		List:   make(map[string]*domain.ListValue),
-// 	}
-// }
+// NewDB returns the new data base for the session
+func NewDB() *DB {
+	return &DB{
+		St:     make(map[string]*domain.Single),
+		Single: &single{singleDB: make(map[string]*domain.Single)},
+		List:   &list{listDB: make(map[string]*domain.ListValue)},
+		// List:   make(map[string]*domain.ListValue),
+	}
+}
 
 // Get returns the value of given key
 func (db *DB) Get(key string) (*domain.Single, error) {
@@ -74,3 +89,31 @@ func (db *DB) Set(args []string) error {
 func timeSecond(millisecond int) int {
 	return millisecond * 1000
 }
+
+func (db *DB) Delete(string) {
+
+}
+func (db *DB) GetValue(string) (*domain.Single, error) {
+	return nil, nil
+}
+func (db *DB) SetValue([]string) error {
+	return nil
+}
+func (db *DB) GetList(string) (*domain.ListValue, error) {
+	return nil, nil
+}
+func (db *DB) SetList([]string) error {
+	return nil
+}
+
+// // SingleStore is the interface
+// type SingleStore interface {
+// 	GetValue(string) (*domain.Single, error)
+// 	SetValue([]string) error
+// 	Delete(string)
+// }
+
+// type ListStore interface {
+// 	GetList(string) (*domain.ListValue, error)
+// 	SetList([]string) error
+// }
