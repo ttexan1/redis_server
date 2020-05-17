@@ -74,7 +74,7 @@ func ParseCommand(text string, parsers map[string]ParseHandler) string {
 
 func rawStringToArguments(text string) *parser {
 	pr := &parser{}
-	args := strings.Split(text, "\n")
+	args := strings.Split(text, "\r\n")
 	fmt.Println(args)
 	if len(args) < 3 {
 		return &parser{

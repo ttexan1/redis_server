@@ -6,8 +6,6 @@ import (
 	"net"
 	"os"
 	"strings"
-
-	"redis_app/command"
 )
 
 func main() {
@@ -28,18 +26,10 @@ func sendMessage(connection net.Conn, text string) {
 		fmt.Println("-Error")
 		return
 	}
-	newText := stdin.Text()
-	if strings.HasSuffix(newText, "/") {
-		text += "\n" + newText[:len(newText)-1] + "\n"
-	} else {
-		text += "\n" + newText
-		sendMessage(connection, text)
-		return
-	}
-	text = strings.Replace(text, "\n", "", 1)
-	fmt.Print(text)
+	converted := simpleConvert(text)
+	fmt.Println(converted)
 
-	_, err := connection.Write([]byte(text))
+	_, err := connection.Write([]byte(converted))
 
 	if err != nil {
 		panic(err)
@@ -56,37 +46,29 @@ func sendMessage(connection net.Conn, text string) {
 	sendMessage(connection, text)
 }
 
-// convertRedisProtocol convert the raw string command to redis protocol string
-func convertRedisProtocol(text string) string {
+func simpleConvert(text string) string {
+	if text == "" {
+		return "*1\r\n$4\r\nping\r\n"
+	}
+	if strings.ToLower(text) == "ping" {
+		return "*1\r\n$4\r\nping\r\n"
+	}
+	if strings.ToLower(text) == "echo test" {
+		return "*2\r\n$4\r\necho\r\n$4\r\ntest\r\n"
+	}
+
 	args := strings.Split(text, " ")
-	switch strings.ToLower(args[0]) {
-	case command.Ping:
-		return dealPing(args)
-	default:
-		return "BBB"
+	if args[0] == "get" {
+		if strings.ToLower(text) == "get key" {
+			length := len(args[1])
+			key := args[1]
+			return fmt.Sprintf("*2\r\n$3\r\nget\r\n$%d\r\n%s\r\n", length, key)
+		}
 	}
-}
-
-func dealPing(args []string) string {
-	if len(args) == 1 {
-		return `
-*1
-$4
-ping
-`
-	}
-	if len(args) == 2 {
-		return fmt.Sprintf(`
-*2
-$4
-ping
-$%d
-%s
-`, len(args[1]), args[1])
-	}
-	return InvalidArgLength()
-}
-
-func InvalidArgLength() string {
-	return "wrong command"
+	// set key value
+	keyLen := len(args[1])
+	key := args[1]
+	valLen := len(args[2])
+	value := args[2]
+	return fmt.Sprintf("*3\r\n$3\r\nset\r\n$%d\r\n%s\r\n$%d\r\n%s\r\n", keyLen, key, valLen, value)
 }
