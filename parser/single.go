@@ -6,7 +6,7 @@ import (
 	"redis_app/domain"
 )
 
-func (h *singleCommandHandler) Handle(pr *parser) domain.RespString {
+func (h *singleCommandHandler) Handle(pr *respRequest) domain.RespString {
 	key := pr.Arguments[0]
 	fmt.Println(pr.Arguments)
 	switch pr.Directive {

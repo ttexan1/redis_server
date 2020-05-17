@@ -7,7 +7,7 @@ type RespString string
 
 // RespInteger returns RespInteger
 func RespInteger(arg int) RespString {
-	return RespString(fmt.Sprintf(":%d", arg))
+	return RespString(fmt.Sprintf(":%d\r\n", arg))
 }
 
 // RespErr returns RespErr

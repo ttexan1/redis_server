@@ -34,15 +34,15 @@ type single struct {
 }
 
 func (sg *single) Get(key string) domain.RespString {
-	res, err := sg.GetValue(key)
+	data, err := sg.GetValue(key)
 	if err != nil {
 		return err.RespError()
 	}
-	return res.RespString()
+	return data.RespString()
 }
 
 func (sg *single) Set(key, value string, options []string) domain.RespString {
-	res, err := sg.GetValue(key)
+	data, err := sg.GetValue(key)
 	if err != nil && err.Message != domain.RespErrorNilValue {
 		return err.RespError()
 	}
@@ -53,10 +53,9 @@ func (sg *single) Set(key, value string, options []string) domain.RespString {
 			if err == nil {
 				return domain.RespErrorNilValue
 			}
-			res = domain.Single{
+			if err := sg.SetValue(key, domain.Single{
 				Value: value,
-			}
-			if err := sg.SetValue(key, res); err != nil {
+			}); err != nil {
 				return err.RespError()
 			}
 			return domain.RespOK
@@ -64,8 +63,8 @@ func (sg *single) Set(key, value string, options []string) domain.RespString {
 			if err != nil {
 				return err.RespError()
 			}
-			res.Value = value
-			if err := sg.SetValue(key, res); err != nil {
+			data.Value = value
+			if err := sg.SetValue(key, data); err != nil {
 				return err.RespError()
 			}
 			return domain.RespOK
@@ -78,31 +77,24 @@ func (sg *single) Set(key, value string, options []string) domain.RespString {
 }
 
 func (sg *single) IncrBy(key, value string) domain.RespString {
+	data, err := sg.GetValue(key)
+	if err != nil && err.Message != domain.RespErrorNilValue {
+		return err.RespError()
+	}
+
+	// check if value is int
 	val, er := strconv.Atoi(value)
 	if er != nil {
 		return domain.RespErr(er.Error())
 	}
 
-	res, err := sg.GetValue(key)
-	if err != nil && err.Message != domain.RespErrorNilValue {
-		return err.RespError()
-	}
-
-	if res.Value == "" {
-		res.Value = value
-		if err := sg.SetValue(key, res); err != nil {
-			return err.RespError()
-		}
-		return res.RespString()
-	}
-
-	oldVal, err := res.IntValue()
+	oldVal, err := data.IntValue()
 	if err != nil {
 		return err.RespError()
 	}
 	newVal := val + oldVal
-	res.Value = string(newVal)
-	if err := sg.SetValue(key, res); err != nil {
+	data.Value = string(newVal)
+	if err := sg.SetValue(key, data); err != nil {
 		return err.RespError()
 	}
 	return domain.RespInteger(newVal)

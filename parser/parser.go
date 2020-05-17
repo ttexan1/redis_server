@@ -68,13 +68,6 @@ func ParseCommand(text string, parsers map[string]ParseHandler) domain.RespStrin
 	return domain.RespErrorUnknownCommand
 }
 
-// example
-// `*2
-// $4
-// ping
-// $3
-// aaa`
-
 func rawStringToArguments(text string) *respRequest {
 	pr := &respRequest{}
 	args := strings.Split(text, "\r\n")
@@ -92,7 +85,7 @@ func rawStringToArguments(text string) *respRequest {
 	}
 	pr.Len = l
 
-	pr.Directive = low(args[2])
+	pr.Directive = strings.ToLower(args[2])
 	if pr.Len >= 2 {
 		for _, arg := range args[3:] {
 			if strings.HasPrefix(arg, "$") {
@@ -102,8 +95,4 @@ func rawStringToArguments(text string) *respRequest {
 		}
 	}
 	return pr
-}
-
-func low(text string) string {
-	return strings.ToLower(text)
 }

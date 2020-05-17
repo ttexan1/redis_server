@@ -18,15 +18,21 @@ type Single struct {
 
 // IntValue converts the value into int type
 func (s *Single) IntValue() (int, *Error) {
+	if s.Value == "" {
+		return 0, nil
+	}
 	val, err := strconv.Atoi(s.Value)
 	if err != nil {
-		return val, &Error{Message: RespErrorWrongArgumentType}
+		return 0, &Error{Message: RespErrorWrongArgumentType}
 	}
 	return val, nil
 }
 
 // FloatValue converts the value into int type
 func (s *Single) FloatValue() (float64, *Error) {
+	if s.Value == "" {
+		return 0, nil
+	}
 	val, err := strconv.ParseFloat(s.Value, 64)
 	if err != nil {
 		return 0, &Error{Message: RespErrorWrongArgumentType}
