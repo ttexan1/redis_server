@@ -1,29 +1,18 @@
 package usecase
 
 import (
-	"fmt"
 	"redis_app/command"
 	"redis_app/domain"
 	"strconv"
+	"strings"
 )
 
 // Single is the interface for single key value command
 type Single interface {
-	Get(string) string
-	Set(string, string, []string) string
-	Del([]string) string
-	IncrBy(string, string) string
-}
-
-// SingleStore is the interface
-type SingleStore interface {
-	GetValue(string) (domain.Single, error)
-	SetValue(string, domain.Single) error
-	Delete(string)
-}
-
-type single struct {
-	SingleStore
+	Get(string) domain.RespString
+	Set(string, string, []string) domain.RespString
+	Del([]string) domain.RespString
+	IncrBy(string, string) domain.RespString
 }
 
 // NewSingle returns the Single interface
@@ -33,55 +22,105 @@ func (uc *UseCase) NewSingle() Single {
 	}
 }
 
-func (sg *single) Get(key string) string {
+// SingleStore is the interface for single structure data store process
+type SingleStore interface {
+	GetValue(string) (domain.Single, *domain.Error)
+	SetValue(string, domain.Single) *domain.Error
+	Delete(string)
+}
+
+type single struct {
+	SingleStore
+}
+
+func (sg *single) Get(key string) domain.RespString {
 	res, err := sg.GetValue(key)
 	if err != nil {
-		return err.Error()
+		return err.RespError()
 	}
-	return fmt.Sprintf("$%d\r\n%s", res.Length, res.Value)
+	return res.RespString()
 }
 
-func (sg *single) Set(key, value string, options []string) string {
+func (sg *single) Set(key, value string, options []string) domain.RespString {
 	res, err := sg.GetValue(key)
-	if err != nil && err.Error() != domain.ErrorTypeNilValue {
-		return err.Error() // todo フォーマットを整形
+	if err != nil && err.Message != domain.RespErrorNilValue {
+		return err.RespError()
 	}
+	// if NX or  XX option exist
 	for _, option := range options {
-		switch option {
+		switch strings.ToLower(option) {
 		case command.SetOptionNX:
-			if err.Error() != domain.ErrorTypeNilValue {
-				return domain.ErrorTypeNilValue
+			if err == nil {
+				return domain.RespErrorNilValue
 			}
 			res = domain.Single{
-				Value:  value,
-				Length: len(value),
+				Value: value,
 			}
 			if err := sg.SetValue(key, res); err != nil {
-				return err.Error()
+				return err.RespError()
 			}
-			return domain.ResponseOK
+			return domain.RespOK
 		case command.SetOptionXX:
-			if err.Error() == domain.ErrorTypeNilValue {
-				return domain.ErrorTypeNilValue
+			if err != nil {
+				return err.RespError()
 			}
 			res.Value = value
-			res.Length = len(value)
 			if err := sg.SetValue(key, res); err != nil {
-				return err.Error()
+				return err.RespError()
 			}
-			return domain.ResponseOK
+			return domain.RespOK
 		}
 	}
-	if err := sg.SetValue(key, domain.Single{
-		Value:  value,
-		Length: len(value),
-	}); err != nil {
-		return err.Error()
+	if err := sg.SetValue(key, domain.Single{Value: value}); err != nil {
+		return err.RespError()
 	}
-	return domain.ResponseOK
+	return domain.RespOK
 }
 
-func (sg *single) Del(keys []string) string {
+func (sg *single) IncrBy(key, value string) domain.RespString {
+	val, er := strconv.Atoi(value)
+	if er != nil {
+		return domain.RespErr(er.Error())
+	}
+
+	res, err := sg.GetValue(key)
+	if err != nil && err.Message != domain.RespErrorNilValue {
+		return err.RespError()
+	}
+
+	if res.Value == "" {
+		res.Value = value
+		if err := sg.SetValue(key, res); err != nil {
+			return err.RespError()
+		}
+		return res.RespString()
+	}
+
+	oldVal, err := res.IntValue()
+	if err != nil {
+		return err.RespError()
+	}
+	newVal := val + oldVal
+	res.Value = string(newVal)
+	if err := sg.SetValue(key, res); err != nil {
+		return err.RespError()
+	}
+	return domain.RespInteger(newVal)
+}
+
+// func (sg *single) Incr(key string) domain.RespString {
+// 	return sg.IncrBy(key, "1")
+// }
+
+// func (sg *single) Decr(key string) domain.RespString {
+// 	return sg.IncrBy(key, "-1")
+// }
+
+// func (sg *single) DecrBy(key, value string) domain.RespString {
+// 	return sg.IncrBy(key, "-"+value)
+// }
+
+func (sg *single) Del(keys []string) domain.RespString {
 	count := 0
 	for _, key := range keys {
 		if _, err := sg.GetValue(key); err == nil {
@@ -89,37 +128,5 @@ func (sg *single) Del(keys []string) string {
 			count++
 		}
 	}
-	return fmt.Sprintf(":%d", count)
-}
-
-func (sg *single) IncrBy(key, value string) string {
-	val, err := strconv.Atoi(value)
-	if err != nil {
-		return "-ERR" + err.Error()
-	}
-
-	res, err := sg.GetValue(key)
-	if err != nil && err.Error() != domain.ErrorTypeNilValue {
-		return err.Error() // todo フォーマットを整形
-	}
-
-	if res.Value == "" {
-		res.Value = value
-		if err := sg.SetValue(key, res); err != nil {
-			return err.Error() // todo フォーマットを整形
-		}
-		return fmt.Sprintf("$%d\r\n%s\r\n", res.Length, res.Value)
-	}
-
-	oldVal, err := res.IntValue()
-	if err != nil {
-		return err.Error() // todo フォーマットを整形
-	}
-	newVal := string(val + oldVal)
-	res.Value = newVal
-	res.Length = len(newVal)
-	if err := sg.SetValue(key, res); err != nil {
-		return err.Error() // todo フォーマットを整形
-	}
-	return fmt.Sprintf(":%s\r\n", res.Value)
+	return domain.RespInteger(count)
 }

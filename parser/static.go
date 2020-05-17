@@ -5,7 +5,7 @@ import (
 	"redis_app/domain"
 )
 
-func (s *staticCommandHandler) Handle(pr *parser) string {
+func (s *staticCommandHandler) Handle(pr *respRequest) domain.RespString {
 	switch pr.Directive {
 	case command.Ping:
 		key := ""
@@ -17,6 +17,6 @@ func (s *staticCommandHandler) Handle(pr *parser) string {
 		arg := pr.Arguments[0]
 		return s.Echo(arg)
 	default:
-		return domain.ErrorTypeWrongSyntax
+		return domain.RespErrorWrongSyntax
 	}
 }

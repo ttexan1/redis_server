@@ -1,29 +1,29 @@
 package usecase
 
 import (
-	"fmt"
 	"redis_app/domain"
 )
 
 // Static is the interface for static command
 type Static interface {
-	Ping(string) string
-	Echo(string) string
+	Ping(string) domain.RespString
+	Echo(string) domain.RespString
 }
 
 type static struct{}
 
+// NewStatic returns the Static interface
 func (uc *UseCase) NewStatic() Static {
 	return &static{}
 }
 
-func (s *static) Ping(key string) string {
+func (s *static) Ping(key string) domain.RespString {
 	if key != "" {
-		return fmt.Sprintf("$%d\r\n%s\r", len(key), key)
+		return domain.RespBulkString(key)
 	}
-	return domain.ResponsePong
+	return domain.RespPong
 }
 
-func (s *static) Echo(arg string) string {
-	return fmt.Sprintf("$%d\r\n%s\r\n", len(arg), arg)
+func (s *static) Echo(arg string) domain.RespString {
+	return domain.RespBulkString(arg)
 }

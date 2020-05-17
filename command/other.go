@@ -7,9 +7,9 @@ package command
 // 	ClientID      = "client id"
 // 	ClientKill    = "client id"
 // 	ClientList    = "client list"
-// 	// and so on
+// 	// and so on...
 // )
 
 // System Command List
 // Memory Command List
-// and so on
+// and so on...

@@ -7,10 +7,11 @@ const (
 	Lpop   = "lpop"
 	Lrem   = "lrem"
 	Ltrim  = "ltrim"
-	// and so on
+	// and so on...
 )
 
 // ListCommandWhiteList is the white list for simple key value data
+// 特に実装はしていません。
 var ListCommandWhiteList = map[string]struct{}{
 	Lpush:  {},
 	Lrange: {},

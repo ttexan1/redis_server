@@ -10,7 +10,7 @@ import (
 	"redis_app/usecase"
 )
 
-type parser struct {
+type respRequest struct {
 	Directive string
 	Arguments []string
 	// Len is a length for the top command
@@ -21,27 +21,33 @@ type staticCommandHandler struct {
 	usecase.Static
 }
 type singleCommandHandler struct {
-	pr *parser
+	pr *respRequest
 	usecase.Single
 }
 
 type listCommandHandler struct {
-	pr *parser
+	pr *respRequest
 	usecase.List
 }
 
 // ParseHandler is the interface for parser
 type ParseHandler interface {
-	Handle(*parser) string
+	Handle(*respRequest) domain.RespString
 }
+
+const (
+	single = "single"
+	static = "static"
+	list   = "list"
+)
 
 // InitParser registers the parser
 func InitParser(uc *usecase.UseCase) map[string]ParseHandler {
 	handlers := map[string]ParseHandler{
-		"single": &singleCommandHandler{
+		single: &singleCommandHandler{
 			Single: uc.NewSingle(),
 		},
-		"static": &staticCommandHandler{
+		static: &staticCommandHandler{
 			Static: uc.NewStatic(),
 		},
 	}
@@ -49,20 +55,17 @@ func InitParser(uc *usecase.UseCase) map[string]ParseHandler {
 }
 
 // ParseCommand parse the given text to response string
-func ParseCommand(text string, parsers map[string]ParseHandler) string {
+func ParseCommand(text string, parsers map[string]ParseHandler) domain.RespString {
 	pr := rawStringToArguments(text)
-	fmt.Println("AAAAAAAAAAAAAA")
 	if _, ok := command.StaticCommandList[pr.Directive]; ok {
-		// todo 定数
-		return parsers["static"].Handle(pr)
+		return parsers[static].Handle(pr)
 	}
-	if _, ok := command.SingleCommandWhiteList[pr.Directive]; ok {
-		return parsers["single"].Handle(pr)
+	if _, ok := command.SingleCommandList[pr.Directive]; ok {
+		return parsers[single].Handle(pr)
 	}
 	if _, ok := command.ListCommandWhiteList[pr.Directive]; ok {
-
 	}
-	return domain.ErrorTypeUnknownCommand
+	return domain.RespErrorUnknownCommand
 }
 
 // example
@@ -72,18 +75,18 @@ func ParseCommand(text string, parsers map[string]ParseHandler) string {
 // $3
 // aaa`
 
-func rawStringToArguments(text string) *parser {
-	pr := &parser{}
+func rawStringToArguments(text string) *respRequest {
+	pr := &respRequest{}
 	args := strings.Split(text, "\r\n")
 	fmt.Println(args)
 	if len(args) < 3 {
-		return &parser{
+		return &respRequest{
 			Directive: "Invalid",
 		}
 	}
 	l, err := strconv.Atoi(strings.Split(args[0], "*")[1])
 	if err != nil {
-		return &parser{
+		return &respRequest{
 			Directive: "Invalid",
 		}
 	}

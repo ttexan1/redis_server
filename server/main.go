@@ -36,6 +36,7 @@ func waitClient(listener net.Listener, db map[string]*store.DB) {
 
 func goEcho(connection net.Conn, db map[string]*store.DB, sID string) {
 	fmt.Println(connection.LocalAddr())
+	// fix クライアントごとにDBを分ける必要なし
 	db[sID] = store.NewDB()
 	defer func() {
 		db[sID] = nil
@@ -44,8 +45,8 @@ func goEcho(connection net.Conn, db map[string]*store.DB, sID string) {
 	uc := usecase.NewUseCase(db[sID].Single, db[sID].List)
 	parsers := parser.InitParser(uc)
 
-	var echo func(net.Conn, *store.DB, *usecase.UseCase)
-	echo = func(connection net.Conn, d *store.DB, uc *usecase.UseCase) {
+	var echo func(net.Conn, *usecase.UseCase)
+	echo = func(connection net.Conn, uc *usecase.UseCase) {
 		var buf = make([]byte, 1024)
 		_, err := connection.Read(buf)
 		if err != nil {
@@ -58,13 +59,12 @@ func goEcho(connection net.Conn, db map[string]*store.DB, sID string) {
 
 		resFormatted := parser.ParseCommand(string(buf), parsers)
 		fmt.Println(resFormatted)
-		// resFormatted := "+OK"
 		_, err = connection.Write([]byte(resFormatted))
 		if err != nil {
 			panic(err)
 		}
-
-		echo(connection, d, uc)
+		echo(connection, uc)
 	}
-	echo(connection, db[sID], uc)
+
+	echo(connection, uc)
 }

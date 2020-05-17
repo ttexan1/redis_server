@@ -8,10 +8,10 @@ import (
 func TestSingleSet(t *testing.T) {
 	ss := &single{singleDB: map[string]domain.Single{}}
 	keyValues := map[string]domain.Single{
-		"key1": {Value: "value1", Length: 6},
-		"key2": {Value: "value2", Length: 6},
-		"key3": {Value: "value3", Length: 6},
-		"key4": {Value: "value4", Length: 6},
+		"key1": {Value: "value1"},
+		"key2": {Value: "value2"},
+		"key3": {Value: "value3"},
+		"key4": {Value: "value4"},
 	}
 	for key, value := range keyValues {
 		ss.SetValue(key, value)
@@ -28,7 +28,7 @@ func TestSingleSet(t *testing.T) {
 func TestSingleDelete(t *testing.T) {
 	key := "key1"
 	ss := &single{singleDB: map[string]domain.Single{
-		key: {Value: "Drink", Length: 5},
+		key: {Value: "Drink"},
 	}}
 	ss.Delete(key)
 	if _, ok := ss.singleDB[key]; ok {
