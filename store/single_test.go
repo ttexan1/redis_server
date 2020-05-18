@@ -35,21 +35,3 @@ func TestSingleDelete(t *testing.T) {
 		t.Fatalf("%s doesn't deleted", key)
 	}
 }
-
-// *1
-// $4
-// ping/
-
-// *2
-// $3
-// get
-// $3
-// key/
-
-// *3
-// $3
-// set
-// $3
-// key
-// $5
-// value/

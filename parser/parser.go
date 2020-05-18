@@ -12,22 +12,8 @@ import (
 
 type respRequest struct {
 	Directive string
-	Arguments []string
-	// Len is a length for the top command
-	Len int
-}
-
-type staticCommandHandler struct {
-	usecase.Static
-}
-type singleCommandHandler struct {
-	pr *respRequest
-	usecase.Single
-}
-
-type listCommandHandler struct {
-	pr *respRequest
-	usecase.List
+	Args      []string
+	Len       int
 }
 
 // ParseHandler is the interface for parser
@@ -42,7 +28,7 @@ const (
 )
 
 // InitParser registers the parser
-func InitParser(uc *usecase.UseCase) map[string]ParseHandler {
+func InitParser(uc *usecase.Usecase) map[string]ParseHandler {
 	handlers := map[string]ParseHandler{
 		single: &singleCommandHandler{
 			Single: uc.NewSingle(),
@@ -54,9 +40,12 @@ func InitParser(uc *usecase.UseCase) map[string]ParseHandler {
 	return handlers
 }
 
-// ParseCommand parse the given text to response string
-func ParseCommand(text string, parsers map[string]ParseHandler) domain.RespString {
-	pr := rawStringToArguments(text)
+// HandleRequest parse the given text to response string
+func HandleRequest(text string, parsers map[string]ParseHandler) domain.RespString {
+	pr, err := decode(text)
+	if err != nil {
+		return domain.RespErrorWrongSyntax
+	}
 	if _, ok := command.StaticCommandList[pr.Directive]; ok {
 		return parsers[static].Handle(pr)
 	}
@@ -68,31 +57,54 @@ func ParseCommand(text string, parsers map[string]ParseHandler) domain.RespStrin
 	return domain.RespErrorUnknownCommand
 }
 
-func rawStringToArguments(text string) *respRequest {
+func decode(text string) (*respRequest, error) {
 	pr := &respRequest{}
-	args := strings.Split(text, "\r\n")
-	fmt.Println(args)
-	if len(args) < 3 {
-		return &respRequest{
-			Directive: "Invalid",
-		}
+	texts := strings.Split(text, "\r\n")
+	texts = texts[:len(texts)-1]
+	if len(texts) < 3 {
+		return nil, fmt.Errorf("Invalid Syntax")
 	}
-	l, err := strconv.Atoi(strings.Split(args[0], "*")[1])
+	reqHeader := texts[0]
+	if len(reqHeader) < 1 {
+		return nil, fmt.Errorf("Invalid Syntax")
+	}
+	// check the request length
+	l, err := strconv.Atoi(reqHeader[1:])
 	if err != nil {
-		return &respRequest{
-			Directive: "Invalid",
-		}
+		return nil, fmt.Errorf("Invalid Syntax")
 	}
 	pr.Len = l
 
-	pr.Directive = strings.ToLower(args[2])
+	pr.Directive = toLowerCase(texts[2])
 	if pr.Len >= 2 {
-		for _, arg := range args[3:] {
-			if strings.HasPrefix(arg, "$") {
-				continue
+		isInfo := true
+		bsLength := 0
+		for _, arg := range texts[3:] {
+			if isInfo {
+				// if strings.HasPrefix(arg, "*") {}
+				if strings.HasPrefix(arg, "$") {
+					i, err := strconv.Atoi(arg[1:])
+					if err != nil {
+						return nil, fmt.Errorf("Invalid Syntax")
+					}
+					bsLength = i
+					isInfo = false
+					continue
+				}
 			}
-			pr.Arguments = append(pr.Arguments, arg)
+			pr.Args = append(pr.Args, arg[:bsLength])
+			isInfo = true
 		}
 	}
-	return pr
+	return pr, nil
+}
+
+func toLowerCase(text string) string {
+	b := []byte(text)
+	for i, c := range []byte(text) {
+		if 'A' <= c && c <= 'Z' {
+			b[i] += 'a' - 'A'
+		}
+	}
+	return string(b)
 }

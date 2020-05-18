@@ -1,14 +1,14 @@
 package usecase
 
-// UseCase is the struct for usecase
-type UseCase struct {
+// Usecase is the struct for usecase
+type Usecase struct {
 	SingleStore SingleStore
 	ListStore   ListStore
 }
 
-// NewUseCase returns initialized struct with database pointer
-func NewUseCase(s SingleStore, l ListStore) *UseCase {
-	return &UseCase{
+// NewUsecase returns initialized struct with database pointer
+func NewUsecase(s SingleStore, l ListStore) *Usecase {
+	return &Usecase{
 		SingleStore: s,
 		ListStore:   l,
 	}

@@ -6,25 +6,30 @@ import (
 	"log"
 	"math/rand"
 	"net"
+	"time"
 
+	_ "net/http/pprof"
 	"redis_app/parser"
 	"redis_app/store"
 	"redis_app/usecase"
 )
 
 func main() {
+	// go func() {
+	// 	log.Println(http.ListenAndServe("localhost:6060", nil))
+	// }()
 	listener, err := net.Listen("tcp", "localhost:10000")
 	if err != nil {
 		panic(err)
 	}
-	db := map[string]*store.DB{}
+	db := store.NewDB()
 
 	log.Println("Server running at localhost:10000")
 
 	waitClient(listener, db)
 }
 
-func waitClient(listener net.Listener, db map[string]*store.DB) {
+func waitClient(listener net.Listener, db *store.DB) {
 	connection, err := listener.Accept()
 	if err != nil {
 		panic(err)
@@ -34,19 +39,20 @@ func waitClient(listener net.Listener, db map[string]*store.DB) {
 	waitClient(listener, db)
 }
 
-func goEcho(connection net.Conn, db map[string]*store.DB, sID string) {
+func goEcho(connection net.Conn, db *store.DB, sID string) {
 	fmt.Println(connection.LocalAddr())
 	// fix クライアントごとにDBを分ける必要なし
-	db[sID] = store.NewDB()
+	// db = store.NewDB()
 	defer func() {
-		db[sID] = nil
 		connection.Close()
 	}()
-	uc := usecase.NewUseCase(db[sID].Single, db[sID].List)
+	uc := usecase.NewUsecase(db.Single, db.List)
 	parsers := parser.InitParser(uc)
 
-	var echo func(net.Conn, *usecase.UseCase)
-	echo = func(connection net.Conn, uc *usecase.UseCase) {
+	var echo func(net.Conn, *usecase.Usecase)
+	echo = func(connection net.Conn, uc *usecase.Usecase) {
+		time.Sleep(time.Second)
+		// connection.Write([]byte("+OK\r\n"))
 		var buf = make([]byte, 1024)
 		_, err := connection.Read(buf)
 		if err != nil {
@@ -57,7 +63,7 @@ func goEcho(connection net.Conn, db map[string]*store.DB, sID string) {
 		}
 		fmt.Println(">", string(buf))
 
-		resFormatted := parser.ParseCommand(string(buf), parsers)
+		resFormatted := parser.HandleRequest(string(buf), parsers)
 		fmt.Println(resFormatted)
 		_, err = connection.Write([]byte(resFormatted))
 		if err != nil {

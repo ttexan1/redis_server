@@ -13,10 +13,13 @@ type Single interface {
 	Set(string, string, []string) domain.RespString
 	Del([]string) domain.RespString
 	IncrBy(string, string) domain.RespString
+	Incr(string) domain.RespString
+	DecrBy(string, string) domain.RespString
+	Decr(string) domain.RespString
 }
 
 // NewSingle returns the Single interface
-func (uc *UseCase) NewSingle() Single {
+func (uc *Usecase) NewSingle() Single {
 	return &single{
 		SingleStore: uc.SingleStore,
 	}
@@ -26,6 +29,7 @@ func (uc *UseCase) NewSingle() Single {
 type SingleStore interface {
 	GetValue(string) (domain.Single, *domain.Error)
 	SetValue(string, domain.Single) *domain.Error
+	IncrSet(string, int) (int, *domain.Error)
 	Delete(string)
 }
 
@@ -82,7 +86,6 @@ func (sg *single) IncrBy(key, value string) domain.RespString {
 		return err.RespError()
 	}
 
-	// check if value is int
 	val, er := strconv.Atoi(value)
 	if er != nil {
 		return domain.RespErr(er.Error())
@@ -93,24 +96,24 @@ func (sg *single) IncrBy(key, value string) domain.RespString {
 		return err.RespError()
 	}
 	newVal := val + oldVal
-	data.Value = string(newVal)
+	data.Value = strconv.Itoa(newVal)
 	if err := sg.SetValue(key, data); err != nil {
 		return err.RespError()
 	}
 	return domain.RespInteger(newVal)
 }
 
-// func (sg *single) Incr(key string) domain.RespString {
-// 	return sg.IncrBy(key, "1")
-// }
+func (sg *single) Incr(key string) domain.RespString {
+	return sg.IncrBy(key, "1")
+}
 
-// func (sg *single) Decr(key string) domain.RespString {
-// 	return sg.IncrBy(key, "-1")
-// }
+func (sg *single) Decr(key string) domain.RespString {
+	return sg.IncrBy(key, "-1")
+}
 
-// func (sg *single) DecrBy(key, value string) domain.RespString {
-// 	return sg.IncrBy(key, "-"+value)
-// }
+func (sg *single) DecrBy(key, value string) domain.RespString {
+	return sg.IncrBy(key, "-"+value)
+}
 
 func (sg *single) Del(keys []string) domain.RespString {
 	count := 0

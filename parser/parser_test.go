@@ -15,7 +15,8 @@ func TestRawParser(t *testing.T) {
 
 	for key, value := range arguments {
 		t.Run(key, func(t *testing.T) {
-			if ps := rawStringToArguments(key); (ps.Directive != value.Directive) ||
+			if ps, err := decode(key); err != nil ||
+				(ps.Directive != value.Directive) ||
 				(ps.Len != value.Len) {
 				t.Errorf("Expect: %#v, Got: %#v", value, ps)
 			}

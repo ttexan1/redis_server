@@ -13,7 +13,7 @@ type Static interface {
 type static struct{}
 
 // NewStatic returns the Static interface
-func (uc *UseCase) NewStatic() Static {
+func (uc *Usecase) NewStatic() Static {
 	return &static{}
 }
 

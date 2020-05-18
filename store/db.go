@@ -11,13 +11,6 @@ type DB struct {
 	// KeyType *keyType
 }
 
-type single struct {
-	singleDB map[string]domain.Single
-}
-type list struct {
-	listDB map[string]domain.ListValue
-}
-
 // type keyType struct {
 // 	keyDB map[string]string
 // }

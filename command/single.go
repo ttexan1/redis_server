@@ -6,6 +6,9 @@ const (
 	Set         = "set"
 	Del         = "del"
 	IncrBy      = "incrby"
+	Incr        = "incr"
+	DecrBy      = "decrby"
+	Decr        = "decr"
 	IncrByFloat = "incrbyfloat"
 	Append      = "append" // not implemented but can be by this application structure
 	// and so on...
@@ -17,6 +20,9 @@ var SingleCommandList = map[string]struct{}{
 	Set:         {},
 	Del:         {},
 	IncrBy:      {},
+	Incr:        {},
+	DecrBy:      {},
+	Decr:        {},
 	IncrByFloat: {},
 	Append:      {},
 }
