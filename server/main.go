@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"io"
 	"log"
-	"math/rand"
 	"net"
 	"time"
 
+	"net/http"
 	_ "net/http/pprof"
 	"redis_app/parser"
 	"redis_app/store"
@@ -15,9 +15,9 @@ import (
 )
 
 func main() {
-	// go func() {
-	// 	log.Println(http.ListenAndServe("localhost:6060", nil))
-	// }()
+	go func() {
+		log.Println(http.ListenAndServe("localhost:6060", nil))
+	}()
 	listener, err := net.Listen("tcp", "localhost:10000")
 	if err != nil {
 		panic(err)
@@ -25,7 +25,6 @@ func main() {
 	db := store.NewDB()
 
 	log.Println("Server running at localhost:10000")
-
 	waitClient(listener, db)
 }
 
@@ -34,14 +33,12 @@ func waitClient(listener net.Listener, db *store.DB) {
 	if err != nil {
 		panic(err)
 	}
-	sessionID := string(rand.Intn(1 << 20))
-	go goEcho(connection, db, sessionID)
+	go goEcho(connection, db)
 	waitClient(listener, db)
 }
 
-func goEcho(connection net.Conn, db *store.DB, sID string) {
+func goEcho(connection net.Conn, db *store.DB) {
 	fmt.Println(connection.LocalAddr())
-	// fix クライアントごとにDBを分ける必要なし
 	// db = store.NewDB()
 	defer func() {
 		connection.Close()

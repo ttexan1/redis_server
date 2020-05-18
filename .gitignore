@@ -1,2 +1,4 @@
 *.test
 server/server
+tester/
+.DS_Store
