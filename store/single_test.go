@@ -1,12 +1,14 @@
-package store
+package store_test
 
 import (
 	"redis_app/domain"
+	"redis_app/store"
 	"testing"
 )
 
 func TestSingleSet(t *testing.T) {
-	ss := &single{singleDB: map[string]domain.Single{}}
+	db := store.NewDB()
+	ss := db.Single
 	keyValues := map[string]domain.Single{
 		"key1": {Value: "value1"},
 		"key2": {Value: "value2"},
@@ -27,11 +29,11 @@ func TestSingleSet(t *testing.T) {
 
 func TestSingleDelete(t *testing.T) {
 	key := "key1"
-	ss := &single{singleDB: map[string]domain.Single{
-		key: {Value: "Drink"},
-	}}
+	db := store.NewDB()
+	ss := db.Single
+	ss.SetValue(key, domain.Single{Value: "value"})
 	ss.Delete(key)
-	if _, ok := ss.singleDB[key]; ok {
+	if _, err := ss.GetValue(key); err.Message != domain.RespErrorNilValue {
 		t.Fatalf("%s doesn't deleted", key)
 	}
 }

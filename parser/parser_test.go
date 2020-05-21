@@ -10,7 +10,7 @@ func TestRawParser(t *testing.T) {
 		"*1\r\n$4\r\nping\r\n":                              {Directive: "ping", Len: 1},
 		"*2\r\n$4\r\nping\r\n$3\r\nabc\r\n":                 {Directive: "ping", Len: 2},
 		"*3\r\n$3\r\nset\r\n$3\r\nkey\r\n$5\r\nvalue\r\n":   {Directive: "set", Len: 3},
-		"*3\r\n$3\r\nset\r\n$4\r\nkey2\r\n$6\r\nvalue2\r\n": {Directive: "set", Len: 4},
+		"*3\r\n$3\r\nset\r\n$4\r\nkey2\r\n$6\r\nvalue2\r\n": {Directive: "set", Len: 3},
 	}
 
 	for key, value := range arguments {

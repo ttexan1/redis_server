@@ -19,14 +19,13 @@ func main() {
 }
 
 func sendMessage(connection net.Conn) {
-	fmt.Print("> ")
+	// fmt.Print("> ")
 
 	stdin := bufio.NewScanner(os.Stdin)
 	if stdin.Scan() == false {
 		return
 	}
 	text := stdin.Text()
-	fmt.Println("text", text)
 
 	converted := simpleConvert(text)
 	fmt.Print(converted)

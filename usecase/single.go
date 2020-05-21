@@ -29,7 +29,6 @@ func (uc *Usecase) NewSingle() Single {
 type SingleStore interface {
 	GetValue(string) (domain.Single, *domain.Error)
 	SetValue(string, domain.Single) *domain.Error
-	IncrSet(string, int) (int, *domain.Error)
 	Delete(string)
 }
 
@@ -88,7 +87,7 @@ func (sg *single) IncrBy(key, value string) domain.RespString {
 
 	val, er := strconv.Atoi(value)
 	if er != nil {
-		return domain.RespErr(er.Error())
+		return domain.RespErrorWrongArgumentType
 	}
 
 	oldVal, err := data.IntValue()

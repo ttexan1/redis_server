@@ -2,3 +2,4 @@
 server/server
 tester/
 .DS_Store
+coverage.out

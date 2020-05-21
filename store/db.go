@@ -2,6 +2,7 @@ package store
 
 import (
 	"redis_app/domain"
+	"sync"
 )
 
 // DB is the struct for data store
@@ -19,7 +20,7 @@ type DB struct {
 func NewDB() *DB {
 	return &DB{
 		// KeyType: &keyType{keyDB: make(map[string]string)},
-		Single: &single{singleDB: make(map[string]domain.Single)},
+		Single: &single{singleDB: make(map[string]domain.Single), mutex: sync.Mutex{}},
 		List:   &list{listDB: make(map[string]domain.ListValue)},
 	}
 }
